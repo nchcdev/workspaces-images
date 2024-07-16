@@ -1,0 +1,5 @@
+{
+    "ProxyMode": "fixed_servers",
+    "ProxyServer": "proxy.sensimesh.nchc.org.tw:3128",
+    "ProxyBypassList": "*.sensimesh.nchc.org.tw;10.231.*"
+}

@@ -1,0 +1,11 @@
+{
+    "policies": {
+        "Proxy": {
+            "Mode": "manual",
+            "Locked": True,
+            "HTTPProxy": "proxy.sensimesh.nchc.org.tw:3128",
+            "UseHTTPProxyForAllProtocols": True,
+            "Passthrough": ""
+        }
+    }
+}
