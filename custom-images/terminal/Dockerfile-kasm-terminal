@@ -10,7 +10,7 @@ WORKDIR $HOME
 
 ######### Customize Container Here ###########
 
-RUN apt-get update && apt-get install -y tmux screen nano dnsutils zip p7zip-full rclone s3cmd wget curl net-tools
+RUN apt-get update && apt-get install -y tmux screen nano dnsutils zip p7zip-full rclone s3cmd wget curl net-tools docker
 
 RUN echo "set -g mouse on" > $HOME/.tmux.conf && chown 1000:1000  $HOME/.tmux.conf
 
@@ -36,6 +36,10 @@ RUN bash $INST_SCRIPTS/ansible/install_ansible.sh  && rm -rf $INST_SCRIPTS/ansib
 ### Install Terraform
 COPY ./src/ubuntu/install/terraform $INST_SCRIPTS/terraform/
 RUN bash $INST_SCRIPTS/terraform/install_terraform.sh  && rm -rf $INST_SCRIPTS/terraform/
+
+### Install kubectl
+COPY ./src/ubuntu/install/kubectl/install_kubectl.sh $INST_SCRIPTS/kubectl/
+RUN bash $INST_SCRIPTS/kubectl/install_kubectl.sh  && rm -rf $INST_SCRIPTS/kubectl
 
 COPY ./src/ubuntu/install/terminal/custom_startup.sh $STARTUPDIR/custom_startup.sh
 RUN chmod +x $STARTUPDIR/custom_startup.sh
