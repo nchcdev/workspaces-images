@@ -1,0 +1,23 @@
+name: "[CI] Terminal"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "develop"
+    paths:
+      - "images/terminal/**"
+
+jobs:
+  build-and-push:
+    name: Build and push action
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/build-push-action.yml
+    with:
+      registry: ghcr.io
+      image-name: terminal
+      context: "."
+      target: ""
+      file: custom-images/terminal/Dockerfile-kasm-terminal

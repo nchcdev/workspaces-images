@@ -1,0 +1,36 @@
+FROM kasmweb/desktop:1.15.0
+USER root
+
+ENV HOME=/home/kasm-default-profile
+ENV STARTUPDIR=/dockerstartup
+ENV INST_SCRIPTS=$STARTUPDIR/install
+WORKDIR $HOME
+
+######### Customize Container Here ###########
+# Install tools
+ENV INST_DIR=$STARTUPDIR/install
+COPY ./src/ $INST_DIR
+RUN bash $INST_SCRIPTS/ubuntu/install/s3cmd/install_s3cmd.sh
+
+# Install Custom Certificate Authority
+COPY ./src/ubuntu/install/certificates $INST_SCRIPTS/certificates/
+RUN bash $INST_SCRIPTS/certificates/install_ca_cert.sh && rm -rf $INST_SCRIPTS/certificates/
+
+ENV http_proxy=http://proxy.sensimesh.nchc.org.tw:3128
+ENV https_proxy=http://proxy.sensimesh.nchc.org.tw:3128
+ENV ftp_proxy=http://proxy.sensimesh.nchc.org.tw:3128
+ENV no_proxy=.sensimesh.nchc.org.tw
+
+COPY ./proxy.json /etc/opt/chrome/policies/managed/proxy.json
+COPY ./policies.json /usr/lib/firefox/distribution/policies.json
+
+######### End Customizations ###########
+
+RUN chown 1000:0 $HOME
+RUN $STARTUPDIR/set_user_permission.sh $HOME
+
+ENV HOME=/home/kasm-user
+WORKDIR $HOME
+RUN mkdir -p $HOME && chown -R 1000:0 $HOME
+
+USER 1000

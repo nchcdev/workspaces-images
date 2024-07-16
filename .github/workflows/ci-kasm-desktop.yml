@@ -1,0 +1,23 @@
+name: "[CI] Desktop"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "develop"
+    paths:
+      - "images/desktop/**"
+
+jobs:
+  build-and-push:
+    name: Build and push action
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/build-push-action.yml
+    with:
+      registry: ghcr.io
+      image-name: desktop
+      context: "."
+      target: ""
+      file: custom-images/desktop/Dockerfile-kasm-desktop
