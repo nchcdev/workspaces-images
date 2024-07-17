@@ -19,6 +19,9 @@ on:
         required: true
         type: string
 
+env:
+  IMAGE_FULL_NAME: ${{ inputs.registry }}/${{ github.repository }}/${{ inputs.image-name }}
+
 jobs:
   build-and-push:
     name: Build and publish image webapp to ghcr.io
@@ -26,6 +29,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -47,7 +51,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ inputs.registry }}/${{ github.repository }}/${{ inputs.image-name }}
+          images: ${{ env.IMAGE_FULL_NAME }}
           tags: |
             type=sha
             type=raw,value=latest
@@ -61,5 +65,32 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ inputs.registry }}/${{ github.repository }}/${{ inputs.image-name }}:buildcache
-          cache-to: type=registry,ref=${{ inputs.registry }}/${{ github.repository }}/${{ inputs.image-name }}:buildcache,mode=max
+          outputs: type=docker,dest=/tmp/${{ env.IMAGE_FULL_NAME }}.tar
+          cache-from: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache,mode=max
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.IMAGE_FULL_NAME }}
+          path: /tmp/${{ env.IMAGE_FULL_NAME }}.tar
+
+  scanner:
+    name: Container image security scanner
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.IMAGE_FULL_NAME }}
+          path: /tmp
+
+      - name: Run Trivy vulnerability scanner in tarball mode
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          input: /tmp/${{ env.IMAGE_FULL_NAME }}.tar
+          severity: "CRITICAL,HIGH"
