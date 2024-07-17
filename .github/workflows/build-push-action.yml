@@ -21,6 +21,7 @@ on:
 
 env:
   IMAGE_FULL_NAME: ${{ inputs.registry }}/${{ github.repository }}/${{ inputs.image-name }}
+  TEST_TAG: ${{ inputs.registry }}/${{ github.repository }}/${{ inputs.image-name }}:test
 
 jobs:
   build-and-push:
@@ -56,23 +57,20 @@ jobs:
             type=sha
             type=raw,value=latest
 
-      - id: docker
-        name: Build and export to Docker
+      - name: Build and export to Docker
         uses: docker/build-push-action@v6
         with:
           context: ${{ inputs.context }}
           file: ${{ inputs.context }}/${{ inputs.file }}
           target: ${{ inputs.target }}
           load: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.TEST_TAG }}
           cache-from: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache,mode=max
 
       - name: Run Trivy vulnerability scanner in tarball mode
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          image-ref: ${{ env.IMAGE_FULL_NAME }}@${{ steps.docker.outputs.digest }}
+          image-ref: ${{ env.IMAGE_FULL_NAME }}@${{ steps.meta.outputs.tags }}
           severity: "CRITICAL,HIGH"
 
       - name: Build and push Docker
