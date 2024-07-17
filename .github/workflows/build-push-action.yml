@@ -70,7 +70,7 @@ jobs:
       - name: Run Trivy vulnerability scanner in tarball mode
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          image-ref: ${{ env.IMAGE_FULL_NAME }}@${{ steps.meta.outputs.tags }}
+          image-ref: ${{ env.TEST_TAG }}
           severity: "CRITICAL,HIGH"
 
       - name: Build and push Docker
