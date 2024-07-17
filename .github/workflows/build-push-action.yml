@@ -65,15 +65,15 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=docker,dest=/tmp/${{ env.IMAGE_FULL_NAME }}.tar
+          outputs: type=docker,dest=/tmp/image.tar
           cache-from: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache,mode=max
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.IMAGE_FULL_NAME }}
-          path: /tmp/${{ env.IMAGE_FULL_NAME }}.tar
+          name: image
+          path: /tmp/image.tar
 
   scanner:
     name: Container image security scanner
@@ -86,11 +86,11 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.IMAGE_FULL_NAME }}
+          name: image
           path: /tmp
 
       - name: Run Trivy vulnerability scanner in tarball mode
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          input: /tmp/${{ env.IMAGE_FULL_NAME }}.tar
+          input: /tmp/image.tar
           severity: "CRITICAL,HIGH"
