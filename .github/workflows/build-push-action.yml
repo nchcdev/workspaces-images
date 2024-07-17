@@ -56,8 +56,27 @@ jobs:
             type=sha
             type=raw,value=latest
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - id: docker
+        name: Build and export to Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.context }}/${{ inputs.file }}
+          target: ${{ inputs.target }}
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache,mode=max
+
+      - name: Run Trivy vulnerability scanner in tarball mode
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ${{ env.IMAGE_FULL_NAME }}@${{ steps.docker.outputs.digest }}
+          severity: "CRITICAL,HIGH"
+
+      - name: Build and push Docker
+        uses: docker/build-push-action@v6
         env:
           DOCKER_BUILD_RECORD_UPLOAD: false
         with:
@@ -67,32 +86,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=docker,dest=/tmp/image.tar
           cache-from: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache,mode=max
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: image.tar
-          path: /tmp/image.tar
-
-  scanner:
-    name: Container image security scanner
-    needs: build-and-push
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: image.tar
-          path: /tmp
-
-      - name: Run Trivy vulnerability scanner in tarball mode
-        uses: aquasecurity/trivy-action@0.20.0
-        with:
-          input: /tmp/image.tar
-          severity: "CRITICAL,HIGH"
