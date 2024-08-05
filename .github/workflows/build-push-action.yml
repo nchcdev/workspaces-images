@@ -19,6 +19,10 @@ on:
         required: true
         type: string
 
+env:
+  IMAGE_FULL_NAME: ${{ inputs.registry }}/${{ github.repository }}/${{ inputs.image-name }}
+  TEST_TAG: ${{ inputs.registry }}/${{ github.repository }}/${{ inputs.image-name }}:test
+
 jobs:
   build-and-push:
     name: Build and publish image webapp to ghcr.io
@@ -26,6 +30,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -47,13 +52,31 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ inputs.registry }}/${{ github.repository }}/${{ inputs.image-name }}
+          images: ${{ env.IMAGE_FULL_NAME }}
           tags: |
             type=sha
             type=raw,value=latest
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - name: Build and export to Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.context }}/${{ inputs.file }}
+          target: ${{ inputs.target }}
+          load: true
+          tags: ${{ env.TEST_TAG }}
+          cache-from: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache
+
+      - name: Run Trivy vulnerability scanner in tarball mode
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ${{ env.TEST_TAG }}
+          severity: "CRITICAL,HIGH"
+
+      - name: Build and push Docker
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
         with:
           context: ${{ inputs.context }}
           file: ${{ inputs.context }}/${{ inputs.file }}
@@ -61,5 +84,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ inputs.registry }}/${{ github.repository }}/${{ inputs.image-name }}:buildcache
-          cache-to: type=registry,ref=${{ inputs.registry }}/${{ github.repository }}/${{ inputs.image-name }}:buildcache,mode=max
+          cache-from: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_FULL_NAME }}:buildcache,mode=max
