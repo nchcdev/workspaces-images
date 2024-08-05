@@ -10,7 +10,10 @@ WORKDIR $HOME
 
 ######### Customize Container Here ###########
 
-RUN apt-get update && apt-get install -y tmux screen nano dnsutils zip p7zip-full rclone s3cmd wget curl net-tools docker
+RUN apt-get update && apt-get install -y tmux screen nano dnsutils zip p7zip-full rclone s3cmd wget curl net-tools
+
+RUN curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+RUN sh /tmp/get-docker.sh
 
 RUN echo "set -g mouse on" > $HOME/.tmux.conf && chown 1000:1000  $HOME/.tmux.conf
 
