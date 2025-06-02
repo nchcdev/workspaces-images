@@ -1,6 +1,6 @@
 # About This Image
 
-This Image contains a browser-accessible Ubuntu Bionic Desktop with a Java development environment.
+This Image contains a browser-accessible Ubuntu Jammy Desktop with a Java development environment.
 
 ![Screenshot][Image_Screenshot]
 
