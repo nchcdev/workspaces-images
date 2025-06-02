@@ -1,10 +1,10 @@
 ARG BASE_TAG="develop"
-ARG BASE_IMAGE="core-alpine-318"
+ARG BASE_IMAGE="core-alpine-321"
 FROM kasmweb/$BASE_IMAGE:$BASE_TAG
 
 USER root
 
-ENV DISTRO=alpine318
+ENV DISTRO=alpine321
 ENV HOME /home/kasm-default-profile
 ENV STARTUPDIR /dockerstartup
 WORKDIR $HOME
@@ -28,6 +28,7 @@ ENV SKIP_CLEAN=true \
                   /alpine/install/pinta/install_pinta.sh \
                   /alpine/install/obs/install_obs.sh \
                   /alpine/install/filezilla/install_filezilla.sh \
+                  /alpine/install/chromium/install_chromium.sh \
                   /ubuntu/install/langpacks/install_langpacks.sh \
                   /ubuntu/install/cleanup/cleanup.sh" 
 
