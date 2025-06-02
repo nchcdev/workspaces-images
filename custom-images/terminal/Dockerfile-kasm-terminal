@@ -1,11 +1,11 @@
 ARG BASE_TAG="develop"
-ARG BASE_IMAGE="core-ubuntu-focal"
+ARG BASE_IMAGE="core-ubuntu-jammy"
 FROM kasmweb/$BASE_IMAGE:$BASE_TAG
 USER root
 
-ENV HOME=/home/kasm-default-profile
-ENV STARTUPDIR=/dockerstartup
-ENV INST_SCRIPTS=$STARTUPDIR/install
+ENV HOME /home/kasm-default-profile
+ENV STARTUPDIR /dockerstartup
+ENV INST_SCRIPTS $STARTUPDIR/install
 WORKDIR $HOME
 
 ######### Customize Container Here ###########
@@ -56,15 +56,15 @@ RUN apt-get remove -y xfce4-panel
 
 ######### End Customizations ###########
 
-ENV http_proxy=http://proxy.sensimesh.nchc.org.tw:3128
-ENV https_proxy=http://proxy.sensimesh.nchc.org.tw:3128
-ENV ftp_proxy=http://proxy.sensimesh.nchc.org.tw:3128
-ENV no_proxy=.sensimesh.nchc.org.tw
+ENV http_proxy http://proxy.sensimesh.nchc.org.tw:3128
+ENV https_proxy http://proxy.sensimesh.nchc.org.tw:3128
+ENV ftp_proxy http://proxy.sensimesh.nchc.org.tw:3128
+ENV no_proxy .sensimesh.nchc.org.tw
 
 RUN chown 1000:0 $HOME
 RUN $STARTUPDIR/set_user_permission.sh $HOME
 
-ENV HOME=/home/kasm-user
+ENV HOME /home/kasm-user
 WORKDIR $HOME
 RUN mkdir -p $HOME && chown -R 1000:0 $HOME
 
